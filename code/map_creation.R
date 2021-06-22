@@ -21,6 +21,12 @@ USmap_state_df <- left_join(USmap_state_df,USmap_state@data, by = 'id')
 USmap_state_df <- USmap_state_df %>% 
   select(long, lat, group, NAME, welfare)
 
+USmap_state_df$welfare[USmap_state_df$NAME == "California"] <- NA
+USmap_state_df$welfare[USmap_state_df$NAME == "Nevada"] <- NA
+USmap_state_df$welfare[USmap_state_df$NAME == "New Mexico"] <- NA
+USmap_state_df$welfare[USmap_state_df$NAME == "Utah"] <- NA
+USmap_state_df$welfare[USmap_state_df$NAME == "Arizona"] <- NA
+
 # Map creation:
 ggplot(USmap_state_df, 
        aes(x = long, 
@@ -29,15 +35,16 @@ ggplot(USmap_state_df,
   geom_polygon(aes(fill = welfare), 
                color = "black", 
                size = 0.1) +
-  scale_fill_viridis(limits = c(-0.01, .01), 
+  scale_fill_viridis(limits = c(-0.05, .05), 
                      option="cividis", 
                      #begin = 1, end = 0,
-                     breaks = seq(-0.01,0.1,.01),
+                     breaks = seq(-0.05,0.05,.02),
                      guide = guide_colorbar(
                        direction = "horizontal",
                        barheight = unit(2, units = "mm"),
                        barwidth = unit(65, units = "mm"),
-                       title.position = "top")) + 
+                       title.position = "top"),
+                     na.value = "white") + 
   labs( x = "Longtitude", 
         y = "Latitiude", 
         fill = "Welfare change") +
