@@ -4,9 +4,7 @@ library(viridis)
 
 welfare <- readstata13::read.dta13(file = 'output/welfare.dta')
 
-welfare$w_twofold <- welfare$w_twofold - 1
-welfare$w_threefold <- welfare$w_threefold - 1
-welfare$w_fivefold <- welfare$w_fivefold - 1
+welfare$welfare <- welfare$welfare - 1
 
 USmap_state <- readOGR(dsn = 'assets/shape_file/49_states', layer = 'USmap_state')
 
@@ -21,14 +19,14 @@ USmap_state@data$id <- as.character(0:(length(USmap_state@data$NAME)-1))
 USmap_state_df <- broom::tidy(USmap_state)
 USmap_state_df <- left_join(USmap_state_df,USmap_state@data, by = 'id')
 USmap_state_df <- USmap_state_df %>% 
-  select(long, lat, group, NAME, w_twofold, w_threefold, w_fivefold)
+  select(long, lat, group, NAME, welfare)
 
 # Map creation:
 ggplot(USmap_state_df, 
        aes(x = long, 
            y = lat, 
            group = group)) + 
-  geom_polygon(aes(fill = w_twofold), 
+  geom_polygon(aes(fill = welfare), 
                color = "black", 
                size = 0.1) +
   scale_fill_viridis(limits = c(-0.01, .01), 
@@ -43,7 +41,7 @@ ggplot(USmap_state_df,
   labs( x = "Longtitude", 
         y = "Latitiude", 
         fill = "Welfare change") +
-  ggtitle("Food Security Potential Distribution of Impacts from the Temporary Suez Canal Closure") +
+  ggtitle("Food Security Distribution of Impacts from the US Western Drought") +
   theme_bw() + theme(legend.position = c(0.2, 0.1)) + coord_fixed(1.3)
 
-ggsave('output/two_fold.png', width = 12, height = 5)
+ggsave('output/welfare.png', width = 12, height = 5)
