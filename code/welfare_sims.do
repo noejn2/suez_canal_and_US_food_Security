@@ -8,7 +8,7 @@
 *
 
 clear all
-cd "[add working directory location]\suez_canal_and_US_food_Security"
+cd "C:\Users\noejn2\OneDrive - University of Illinois - Urbana\Drive\Projects\suez_canal_and_US_food_Security"
 cap set matsize 800
 cap set matsize 11000
 cap set maxvar 32000
@@ -18,8 +18,13 @@ keep if year == "2017"
 drop year
 rename value trade
 
-* Regions affecting the U.S.
-global cntry_list "Eastern Asia" "SE Asia & Oceania" "SW & Central Asia"
+* Non-US regions
+global cntry_list "Africa" "Canada" "Europe" "Eastern Asia" "Mexico" "Rest of Americas" "SE Asia & Oceania" "SW & Central Asia"
+
+foreach cntry in "$cntry_list" {
+	drop if orig == "`cntry'"
+	drop if dest == "`cntry'"
+}
 
 * Theta = 2.468 based on "Who benefits from local agriculture? (Under review in the American Journal of Agricultural Economics) paper with William Ridley and Sandy Dall'Erba"
 
@@ -29,30 +34,18 @@ gen A_hat = 1 /* No effect*/
 
 replace trade = 1 if orig == dest & trade == 0
 
-/* Scenario 1: Souz Canal doubles trade costs */
-foreach cntry in "$cntry_list" {
-	replace beta = -2.468*log(2) if orig == "`cntry'" & orig != dest
+/* Scenario: California, Nevada, Utah, Arizona, New Mexico */
+global drgth_list "Arizona" "California" "Nevada" "New Mexico" "Utah"
+foreach cntry in "$drgth_list" {
+	replace A_hat = .5 if orig == "`cntry'"
 }
-ge_gravity_tech orig dest trade beta, theta(2.468) gen_w(w_twofold) gen_X(trade) gen_rw(local_wages) a_hat(A_hat)
-
-/* Scenario 2: Souz Canal trade costs are three-fold */
-foreach cntry in "$cntry_list" {
-	replace beta = -2.468*log(3) if orig == "`cntry'" & orig != dest
-}
-ge_gravity_tech orig dest trade beta, theta(2.468) gen_w(w_threefold) gen_X(trade) gen_rw(local_wages) a_hat(A_hat)
-
-/* Scenario 3: Souz Canal trade costs are five-fold */
-foreach cntry in "$cntry_list" {
-	replace beta = -2.468*log(5) if orig == "`cntry'" & orig != dest
-}
-ge_gravity_tech orig dest trade beta, theta(2.468) gen_w(w_fivefold) gen_X(trade) gen_rw(local_wages) a_hat(A_hat)
+ge_gravity_tech orig dest trade beta, theta(2.468) gen_w(welfare) gen_X(trade) gen_rw(local_wages) a_hat(A_hat)
 
 /* Creating U.S. dataset */
 keep if orig == dest
-foreach cntry in "Africa" "Europe" "Mexico" "Rest of Americas" "Eastern Asia" "SE Asia & Oceania" "SW & Central Asia" "Canada" "Washington DC" {
-	drop if orig == "`cntry'"
-}
 rename orig state
-keep state w_twofold w_threefold w_fivefold
+* Assuming half intermediate inputs
+replace welfare = welfare^(1/.5)
+
 save "output/welfare.dta", replace
 *end
